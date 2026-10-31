@@ -1,0 +1,197 @@
+#include <cstdint>
+#include <cstring>
+#include <iostream>
+#include <windows.h>
+using namespace std;
+
+void SI() {
+    cout << "bool - " << sizeof(bool) << endl;
+    cout << "char - " << sizeof(char) << endl;
+    cout << "short int - " << sizeof(short int) << endl;
+    cout << "int - " << sizeof(int) << endl;
+    cout << "long int - " << sizeof(long  int) << endl;
+    cout << "float - " << sizeof(float) << endl;
+    cout << "double - " << sizeof(double) << endl;
+    cout << "long double - " << sizeof(long double) << endl;
+}
+
+
+void Bi(uint32_t u) {
+    for (int i = 31; i >= 0; --i) {
+        cout << ((u >> i) & 1);
+        if (i == 31) cout << " | ";
+        else if (i % 8 == 0 && i != 0) cout << ' ';
+    }
+    cout << endl;
+}
+
+void Fl(float f) {
+    uint32_t bits;
+    memcpy(&bits, &f, sizeof(bits));
+
+    int sign = bits >> 31;
+    int expo = (bits >> 23) & 0xFF;
+    uint32_t mant = bits & 0x7FFFFF;
+
+    cout << "значение: " << f << endl;
+    cout << "знак: " << sign << endl;
+    cout << "порядокк: ";
+    for (int i = 30; i >= 23; --i) cout << ((bits >> i) & 1);
+    cout << " (" << expo << ")" << endl;
+    cout << "мантисса: ";
+    for (int i = 22; i >= 0; --i) cout << ((bits >> i) & 1);
+    cout << endl;
+    if (expo == 0 && mant != 0) cout << "денормализованное  число" << endl;
+}
+
+void Da(double d) {
+    uint64_t bits;
+    memcpy(&bits, &d, sizeof(bits));
+
+    int sign = bits >> 63;
+    int expo = (bits >> 52) & 0x7FF;
+    uint64_t mant = bits & 0xFFFFFFFFFFFFFULL;
+
+    cout << "значение: " << d << endl;
+    cout << "знак: " << sign << endl;
+    cout << "порядок: ";
+    for (int i = 62; i >= 52; --i) cout << ((bits >> i) & 1);
+    cout << " (" << expo << ")" << endl;
+    cout << "мантисса: ";
+    for (int i = 51; i >= 0; --i) cout << ((bits >> i) & 1);
+    cout << endl;
+    if (expo == 0 && mant != 0) cout << "денормализованное число" << endl;
+}
+
+uint32_t B32(uint32_t value, int k, int op) {
+    if (op == 1) value |= (1u << k);
+    if (op == 2) value &= ~(1u << k);
+    if (op == 3) value ^= (1u << k);
+    return value;
+}
+
+uint64_t B64(uint64_t value, int k, int op) {
+    if (op == 1) value |= (1ULL << k);
+    if (op == 2) value &= ~(1ULL << k);
+    if (op == 3) value ^= (1ULL << k);
+    return value;
+}
+
+int main() {
+    SetConsoleOutputCP(1251);
+    SetConsoleCP(1251);
+    cout << "размеры типов" << endl;
+    SI();
+    cout << "целое число" << endl;
+    int32_t a;
+    cout << "введите целое число: ";
+    cin >> a;
+    uint32_t u = (uint32_t)a;
+    Bi(u);
+
+    cout << "float" << endl;
+    float f;
+    cout << "введите float: ";
+    cin >> f;
+    Fl(f);
+
+    cout << "double" << endl;
+    double d;
+    cout << "ввведите double: ";
+    cin >> d;
+    Da(d);
+
+    cout << "изменение бита" << endl;
+    int k;
+
+    int32_t a2;
+    cout << "введите новое целое число: ";
+    cin >> a2;
+    uint32_t u2 = (uint32_t)a2;
+    Bi(u2);
+    cout << "номер бита(0-31): ";
+    cin >> k;
+    while (k < 0 or k > 31) {
+        cin >> k;
+    }
+    cout << "установить (|=): ";
+    Bi(B32(u2, k, 1));
+    cout << "сбросить (&= ~): ";
+    Bi(B32(u2, k, 2));
+    cout << "инвертировать  ( ^=): ";
+    Bi(B32(u2, k, 3));
+
+    float f2;
+    cout << "введите новое число float: ";
+    cin >> f2;
+    Fl(f2);
+    uint32_t fb2;
+    memcpy(&fb2, &f2, sizeof(fb2));
+    cout << "номер бита (0-31): ";
+    cin >> k;
+    while (k < 0 or k > 31) {
+        cin >> k;
+    }
+    for (int op = 1; op <= 3; op++) {
+        uint32_t r = B32(fb2, k, op);
+        float fr;
+        memcpy(&fr, &r, sizeof(fr));
+        if (op == 1) cout << "установить (|=):" << endl;
+        if (op == 2) cout << "сбросить (&= ~):" << endl;
+        if (op == 3) cout << "инвертировать (^=):" << endl;
+        Fl(fr);
+    }
+
+    double d2;
+    cout << "введите новое число double: ";
+    cin >> d2;
+    Da(d2);
+    uint64_t db2;
+    memcpy(&db2, &d2, sizeof(db2));
+    cout << "номер бита (0-63): ";
+    cin >> k;
+    while (k < 0 or k > 63) {
+        cin >> k;
+    }
+    for (int op = 1; op <= 3; op++) {
+        uint64_t r = B64(db2, k, op);
+        double dr;
+        memcpy(&dr, &r, sizeof(dr));
+        if (op == 1) cout << "установить (|=):" << endl;
+        if (op == 2) cout << "сбросить (&= ~):" << endl;
+        if (op == 3) cout << "инвертировать (^=):" << endl;
+        Da(dr);
+    }
+
+    cout << "занулени е старшего байта" << endl;
+
+    uint32_t z = u;
+    cout << "int до: ";
+    Bi(z);
+    z &= 0x00FFFFFFu;
+    cout << "int после: ";
+    Bi(z);
+    cout << "число: " << a << " => " << (int32_t)z << endl;
+
+    uint32_t zf;
+    memcpy(&zf, &f, sizeof(zf));
+    zf &= 0x00FFFFFF;
+    float fz;
+    memcpy(&fz, &zf, sizeof(fz));
+    cout << "float до:" << endl;
+    Fl(f);
+    cout << "float после:" << endl;
+    Fl(fz);
+
+    uint64_t zd;
+    memcpy(&zd, &d, sizeof(zd));
+    zd &= 0x00FFFFFFFFFFFFFFULL;
+    double dz;
+    memcpy(&dz, &zd, sizeof(dz));
+    cout << "double до:" << endl;
+    Da(d);
+    cout << "double после:" << endl;
+    Da(dz);
+
+    return 0;
+}
